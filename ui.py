@@ -14,6 +14,11 @@ class ButtonState(Enum):
 class Button:
     """Boton basico para usar en objetos de UI mayores
     Permite definir sus dimensiones y una imagen para mostrar."""
+    _screen = NULL
+
+    @_screen.setter
+    def set_screen(self,screen):
+        type(self)._screen = screen
 
     def __init__(self, dims, image, buttonType):
         self._width = dims[0]
