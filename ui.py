@@ -14,24 +14,48 @@ class ButtonState(Enum):
 class Button:
     """Boton basico para usar en objetos de UI mayores
     Permite definir sus dimensiones y una imagen para mostrar."""
-    _screen = NULL
+
+    _screen = None  #Debe ser seteada antes de cualquier llamada a draw()
+
 
     @_screen.setter
     def set_screen(self,screen):
         type(self)._screen = screen
 
-    def __init__(self, dims, image, buttonType):
+    def __init__(self, dims, ref, image, buttonType):
         self._width = dims[0]
         self._height = dims[1]
         self._left = dims[2]
         self._top = dims[3]
+        self._refX = ref[0]
+        self._refY = ref[1]
         self._image = image
         self._type = buttonType
         self._state = ButtonState.IDLE
+        self._semipressed = None
         return None
+
+    def is_inside_button(self,x,y):
+        if x > (self._left + self._refX) \
+            & x < (self._left + self._refX + self._width):
+                if y > (self._top + self._refY) \
+                & y < (self._top + self_refY + self._height):
+                    return True
+        return False
 
     def draw(self):
         pass
+
+    def is_pressed(self,mouseEvent):
+        if self._semipressed == False:
+            if mouseEvent.type == 'MOUSEBUTTONDOWN' \
+            & is_inside_button(mouseEvent.x, mouseEvent.y):
+                    self._semipressed = True
+        else:
+            if mouseEvent.type == 'MOUSEBUTTONUP' \
+            & is_inside_button(mouseEvent.x, mouseEvent.y):
+                self._state = ButtonState.PRESSED
+                self._semipressed = False
 
 class UI:
     """Clase principal de User Interface, 
