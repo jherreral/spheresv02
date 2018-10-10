@@ -331,3 +331,6 @@ ASALocalRun/
 
 # PyProjects created by Visual Studio
 *.pyproj
+
+#json files
+*.json
