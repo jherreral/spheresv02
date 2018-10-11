@@ -1,11 +1,20 @@
 import ui
 import time
+import pathlib
+
+def wpath(path):
+    result = ""
+    for idx,part in enumerate(path.parts):
+        if idx == 0:
+            result = part
+        else:
+            result += "\\" + part
+    return result
 
 # Crear variables para init de Button
 refX = refY = 200
-path = 'C:\\Users\\jherr\\Documents\\GitHub\\\
-spheresv02\\spheresv02\\Assets\\botonA.png'
-imageA = ui.pygame.image.load(path)
+boton_path = pathlib.Path.cwd() / "Assets" / "botonA.png"
+imageA = ui.pygame.image.load(wpath(path))
 
 width = 220
 height = 95
@@ -36,7 +45,7 @@ while(1):
     events = ui.pygame.event.get(ui.pygame.MOUSEBUTTONDOWN)
     if(events):
         mouseEv = events[-1]
-        if buttonA.is_inside(mouseEv.pos[0],mouseEv.pos[1]):
+        if buttonA.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
             buttonA.update_by_event(mouseEv)
     buttonA.draw()
     ui.pygame.display.flip()

@@ -3,6 +3,13 @@ import pygame
 import time
 from enum import Enum
 
+def frame_creator(dims):
+    return list([(dims[2], dims[3]),
+                 (dims[2] + dims[0], dims[3]),
+                 (dims[2] + dims[0], dims[3]+dims[1]),
+                 (dims[2], dims[3]+dims[1])])
+
+
 class ButtonType(Enum):
     PULSE = 1
     TOGGLE = 2
@@ -12,12 +19,15 @@ class ButtonState(Enum):
     HOVER = 2
     PRESSED = 3
 
-
 class UIElement:
     """Clase que guarda metodos estaticos y genericos para todos los objetos UI"""
     
-    def __init__(self):
+    def __init__(self, dims):
         self.__screen = None
+        self._width = dims[0]
+        self._height = dims[1]
+        self._left = dims[2]        
+        self._top = dims[3]
 
     @property
     def _screen(self):
@@ -27,7 +37,7 @@ class UIElement:
     def _screen(self,scn):
         self.__screen = scn
 
-    def is_inside(self,x,y):
+    def has_inside(self,x,y):
         if (x > self._left and 
             x < self._left + self._width):
             if (y > self._top and 
@@ -38,9 +48,11 @@ class UIElement:
 class Component(UIElement):
     """Los componentes son secciones de la pantalla de juego"""
     def __init__(self, **kwargs):
-        self._active = True  # Un objeto inactivo 
-                             # no ejecuta su update()
-        return super().__init__(**kwargs)
+
+        # Un componente inactivo no ejecuta su update()
+        self._active = True   
+                             
+        super().__init__(**kwargs)
     
 
 class Button(UIElement):
@@ -54,21 +66,32 @@ class Button(UIElement):
     _frameWidth = None
     _holdTime = None
 
-    def __init__(self, dims, image, frame, buttonType):
-        self._width = dims[0]
-        self._height = dims[1]
-        self._left = dims[2]        
-        self._top = dims[3]
+    @classmethod
+    def frame_creator(cls,dims):
+        f2 = cls._frameWidth/2
+        return list([(dims[2] + f2, dims[3] + f2),
+                 (dims[2] + dims[0] - f2, dims[3] + f2),
+                 (dims[2] + dims[0] - f2, dims[3] + dims[1] - f2),
+                 (dims[2] + f2, dims[3] + dims[1] - f2)])
 
+    def __init__(self, dims, image, frame, buttonType = ButtonType.PULSE):
+        super().__init__(dims)
 
-        self._image = image         # Imagen de fondo del boton.
-        self._frame = frame         # Lista con las 4 esquinas, 
-                                    # compensada por _frameWidth. 
-        self._pressedTime = None
+        # Imagen de fondo del boton.
+        self._image = image
+        
+        # Lista con las 4 esquinas, compensada por _frameWidth.
+        self._frame = frame
+
+        # Variable que guarda instante en que se hace click en el boton.          
+        self._pressedTime = None    
 
         self._type = buttonType
         self._state = ButtonState.IDLE
-        self._action = False
+        
+        # Prendida por click asincrono, apagada por el padre 
+        # sincronamente cuando este procesa el boton con su update
+        self._action = False        
         return None
 
     def update(self):
@@ -81,7 +104,7 @@ class Button(UIElement):
             if elapsedTime < self._holdTime:
                 return
         (x,y) = pygame.mouse.get_pos()
-        if self.is_inside(x,y):
+        if self.has_inside(x,y):
             self._state = ButtonState.HOVER
         else: 
             if self._type == ButtonType.PULSE:
@@ -104,7 +127,7 @@ class Button(UIElement):
         hay un evento MOUSEBUTTONDOWN dentro de los bordes de 
         este Button"""
         if (mouseEvent.type == pygame.MOUSEBUTTONDOWN 
-            and self.is_inside(mouseEvent.pos[0], mouseEvent.pos[1])):
+            and self.has_inside(mouseEvent.pos[0], mouseEvent.pos[1])):
             #Comprobación redundante pues este metodo debiera ser 
             #llamado solo cuando le llega un MOUSEBUTTONDOWN al 
             #Component padre en las coordenadas del boton.
@@ -121,6 +144,107 @@ class Button(UIElement):
                     self._state = ButtonState.PRESSED
                     self._action = True
 
+class ScrollBar(UIElement):
+    """Barra de desplazamiento en menus. 
+    Contiene 2 Button y la barra arrastrable"""
+
+    #TODO:Dejar _width como variable de clase, no de instancia.
+    #     Seteada durante inicialización.
+    #TODO:Hacer barra desplazable.
+
+    def __init__(self,
+                 dims,
+                 backImage,
+                 barImage,
+                 barHeight,
+                 barDisplacement,
+                 buttonImage):
+        super().__init__(dims)
+
+        self._backImage = pygame.transform.scale(backImage,
+                            (self._width, self._height - 2*self._width))
+        self._barHeight = barHeight
+        self._barImage = pygame.transform.scale(barImage,
+                            (self._width, self._barHeight))
+        self._barLocalTop = self._width
+        self._barDisplacement = barDisplacement
+        self._topButton = Button(
+            (self._width,self._width,self._left,self._top),
+            buttonImage,
+            Button.frame_creator((self._width,
+                          self._width,
+                          self._left,
+                          self._top)))
+        self._bottomButton = Button(
+            (self._width,
+            self._width,
+            self._left,
+            self._top + self._height - self._width),
+            pygame.transform.flip(buttonImage,False,True),
+            Button.frame_creator((self._width,
+                          self._width,
+                          self._left,
+                          self._top + self._height - self._width)))
+
+    def update_by_event(self,mouseEvent):
+        """Método llamado por el contenedor solo cuando 
+        hay un evento MOUSEBUTTONDOWN dentro de los bordes de 
+        este ScrollBar"""
+        if (mouseEvent.type == pygame.MOUSEBUTTONDOWN 
+            and self.has_inside(mouseEvent.pos[0], mouseEvent.pos[1])):
+            #Comprobación redundante pues este metodo debiera ser 
+            #llamado solo cuando le llega un MOUSEBUTTONDOWN al 
+            #Component padre en las coordenadas del scrollbar.
+
+            if self._bottomButton.has_inside(mouseEvent.pos[0],
+                                            mouseEvent.pos[1]):
+                self._bottomButton.update_by_event(mouseEvent)
+
+            if self._topButton.has_inside(mouseEvent.pos[0],
+                                         mouseEvent.pos[1]):
+                self._topButton.update_by_event(mouseEvent)
+
+    def update(self):
+        """Método llamado sincronicamente (cada frame de juego) 
+        por el contenedor al cual pertenece este ScrollBar
+        para actualizar el estado visual e interno del ScrollBar"""
+        self._topButton.update()
+        self._bottomButton.update()
+
+        if self._topButton._action:
+            self._barLocalTop -= self._barDisplacement
+            if self._barLocalTop < self._width:
+                self._barLocalTop = self._width
+            self._topButton._action = False
+
+        if self._bottomButton._action:
+            self._barLocalTop += self._barDisplacement
+            if self._barLocalTop > self._height - self._width - self._barHeight:
+                self._barLocalTop = self._height - self._width - self._barHeight
+            self._bottomButton._action = False
+
+    def draw(self):
+        self._topButton.draw()
+        self._bottomButton.draw()
+        self._screen.blit(self._backImage,
+                          (self._left,self._top + self._width))
+        self._screen.blit(self._barImage,
+                          (self._left,self._top + self._barLocalTop))
+
+class TextField(UIElement):
+    """Muestra parte de un archivo de texto, con ajuste de linea. """
+
+    def __init__(self,dims,text,font):
+        super().__init__(dims)
+        self._text = text
+        self._font = font
+        self._linePosition = None 
+
+    def draw(self):
+        pass
+
+
+
 class UI:
     """Clase principal de User Interface, 
     encargada de procesar peticiones para el usuario, 
@@ -128,7 +252,6 @@ class UI:
 
     def __init__(self, q):
         self._queue = q
-        return super().__init__(**kwargs)
 
     def main(self):
         ExitUI = False
