@@ -1,6 +1,7 @@
 import queue
 import pygame
 import time
+import os
 from enum import Enum
 
 def frame_creator(dims):
@@ -231,18 +232,116 @@ class ScrollBar(UIElement):
         self._screen.blit(self._barImage,
                           (self._left,self._top + self._barLocalTop))
 
-class TextField(UIElement):
-    """Muestra parte de un archivo de texto, con ajuste de linea. """
+class Label(UIElement):
+    """Objeto de texto simple, con una sola linea"""
 
-    def __init__(self,dims,text,font):
+    def __init__(self,dims,text,font,background=None):
         super().__init__(dims)
         self._text = text
         self._font = font
-        self._linePosition = None 
+        self._background = background
+        self._surface = font.render(self._text, True, (255,255,255), self._background)
 
     def draw(self):
-        pass
+        self._screen.blit(self._surface,(self._left,self._top))
 
+    def set_text(self,text):
+        self._text = text
+
+class TextField(UIElement):
+    """Muestra parte de un archivo de texto, con ajuste de linea. """
+
+    _xMargin = None
+
+    def __init__(self,
+                 dims,
+                 someFile,
+                 linesToRender,
+                 font,
+                 background,
+                 textColor):
+        super().__init__(dims)
+        
+        #Parse arguments
+        self._originalFile = someFile
+        self._linesToRender = linesToRender
+        self._font = font
+        self._background = pygame.transform.scale(
+            background,
+            (self._width,self._height))
+        self._textColor = textColor
+        
+        self._maxCharactersPerLine = self._calculate_max_characters()
+        self._lastKnownFileLength = 0
+
+        self._lines = []
+        self._translate_file_lines()
+
+        self._linePosition = 0
+        self._movedLines = 0
+        self._currentSurfaces = []
+        for line in self._lines[0:(self._linesToRender-1)]:
+            self._currentSurfaces.append(self._font.render(
+                line.strip(), True, self._textColor))
+
+    def _calculate_max_characters(self):
+        metric = self._font.metrics('W')
+        return (self._width - 2 *self._xMargin) // metric[0][4]
+
+    def _translate_file_lines(self):
+        '''Lee el archivo original o su diferencia, procesa las 
+        lineas nuevas y las guarda en la lista de lineas de la instancia.
+        '''
+        #Leer nuevas lineas y ajustar contador hasta nuevo final de archivo
+        self._originalFile.seek(self._lastKnownFileLength)
+        rawNewLines = list(self._originalFile)
+        self._lastKnownFileLength = self._originalFile.tell()
+
+        #Cortar lineas y agregarlas a lista previa
+        newLines = []
+        for rawLine in rawNewLines:
+            rawLine = rawLine.strip()
+            nOfDivisions = len(rawLine)//self._maxCharactersPerLine
+            if nOfDivisions > 0:
+                for i in range(nOfDivisions):
+                    newLines.append(rawLine[(self._maxCharactersPerLine * i) : (self._maxCharactersPerLine * (i+1) - 1)])
+                newLines.append(rawLine[(self._maxCharactersPerLine * (i+1)) :])
+            else:
+                newLines.append(rawLine)
+
+        #Anexar nuevas lineas a listado general y correr lineas en pantalla
+        self._lines.extend(newLines)
+        #self._movedLines += len(newLines)
+
+
+    def update(self):
+        if self._movedLines != 0:
+            for i in range(abs(self._movedLines)):
+                if self._movedLines < 0:
+                    self._currentSurfaces.pop(0)
+                    self._currentSurfaces.insert(0,
+                        self._font.render(self._lines[self._linePosition - (i+1)], 
+                                        True, 
+                                        self._textColor))
+                else:
+                    self._currentSurfaces.pop()
+                    self._currentSurfaces.append(
+                        self._font.render(self._lines[self._linePosition + self._linesToRender + i], 
+                                        True, 
+                                        self._textColor))
+            self._linePosition += self._movedLines
+            self._movedLines = 0
+
+
+    def draw(self):
+        self._screen.blit(self._background, (self._left, self._top))
+        lineHeight = self._font.get_height()
+        for idx,someLine in enumerate(self._currentSurfaces):
+            self._screen.blit(someLine, (self._left + self._xMargin,
+                             self._top + idx * lineHeight))
+
+    def update_by_event(self,mouseEv):
+        pass
 
 
 class UI:

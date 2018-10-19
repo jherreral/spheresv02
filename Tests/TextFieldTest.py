@@ -1,6 +1,6 @@
 import time
 import pathlib
-
+import pygame
 import sys
 import os.path
 sys.path.append(
@@ -20,33 +20,35 @@ def wpath(path):
     return result
 
 def set_parameters_and_create():
-    # Setear variables de clase Button, usada por ScrollBar
-    ui.Button._hoverColor = (0,0,200)
-    ui.Button._pressedColor = (200, 0, 0)
-    ui.Button._frameWidth = 5
-    ui.Button._holdTime = 0.2
 
-    # Crear variables para init de ScrollBar
-    refX = 300
+    # Setear variables de clase TextField
+    ui.TextField._xMargin = 5
+
+    # Crear variables para init de TextField
+    refX = 400
     refY = 200
-    buttonPath = pathlib.Path.cwd() / "Assets" / "scrollButton.png"
-    barPath = pathlib.Path.cwd() / "Assets" / "scrollBar.png"
-    backPath = pathlib.Path.cwd() / "Assets" / "scrollBack.png"
-
-    buttonImage = ui.pygame.image.load(wpath(buttonPath))
-    barImage = ui.pygame.image.load(wpath(barPath))
-    backImage = ui.pygame.image.load(wpath(backPath))
-
-    width = 20
-    height = 150
-    barHeight = 10
-    barDispl = 3
+    width = 150
+    height = 200
     dims = (width,height,refX,refY)
 
-    scrollBarA = ui.ScrollBar(dims, backImage, barImage, barHeight, barDispl, buttonImage)
-    return scrollBarA
+    pygame.font.init()
+    someFont = pygame.font.SysFont('Courier New',12)
+    
+    filePath = pathlib.Path.cwd() / "Tests" / "textForTestingTextField.txt"
+    backPath = pathlib.Path.cwd() / "Assets" / "scrollBack.png"
 
-standalone = False
+    someFile = open(filePath,'r')
+    linesToRender = 7
+    backImage = ui.pygame.image.load(wpath(backPath))
+    textColor = pygame.Color(255,255,255,255)
+
+    
+
+    textFieldA = ui.TextField(dims, someFile, linesToRender,
+                                someFont, backImage, textColor)
+    return textFieldA
+
+standalone = True
 if(standalone):
     # Crear screen para los objetos UI
     # pylint: disable=E1101
@@ -56,15 +58,15 @@ if(standalone):
     screen = ui.pygame.display.set_mode(size)
     ui.UIElement._screen = screen
 
-    scrollBarA = set_parameters_and_create()
+    textFieldA = set_parameters_and_create()
 
     while(1):
-        scrollBarA.update()
+        textFieldA.update()
         events = ui.pygame.event.get(ui.pygame.MOUSEBUTTONDOWN)
         if(events):
             mouseEv = events[-1]
-            if scrollBarA.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
-                scrollBarA.update_by_event(mouseEv)
-        scrollBarA.draw()
+            if textFieldA.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
+                textFieldA.update_by_event(mouseEv)
+        textFieldA.draw()
         ui.pygame.display.flip()
         time.sleep(0.020)
