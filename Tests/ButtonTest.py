@@ -19,6 +19,12 @@ def wpath(path):
     return result
 
 def set_parameters_and_create():
+    # Setear variables de clase Button
+    ui.Button._hoverColor = (0,0,200)
+    ui.Button._pressedColor = (200, 0, 0)
+    ui.Button._frameWidth = 5
+    ui.Button._holdTime = 0.2
+
     # Crear variables para init de Button
     refX = refY = 100
     path = pathlib.Path.cwd() / "Assets" / "botonA.png"
@@ -27,18 +33,10 @@ def set_parameters_and_create():
     width = 220
     height = 95
     dims = (width,height,refX,refY)
-    frame = list([(dims[2], dims[3]),
-                (dims[2] + dims[0], dims[3]),
-                (dims[2] + dims[0], dims[3]+dims[1]),
-                (dims[2], dims[3]+dims[1])])
+    frame = ui.Button.frame_creator(dims)
 
-    # Setear variables de clase Button
-    ui.Button._hoverColor = (0,0,200)
-    ui.Button._pressedColor = (200, 0, 0)
-    ui.Button._frameWidth = 5
-    ui.Button._holdTime = 0.2
-
-    buttonA = ui.Button(dims, imageA, frame, ui.ButtonType.PULSE)
+    params = ui.ButtonParams(dims, imageA, frame, ui.ButtonType.PULSE)
+    buttonA = ui.Button(params)
     return buttonA
 
 standalone = False

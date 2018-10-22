@@ -334,3 +334,9 @@ ASALocalRun/
 
 #json files
 *.json
+
+#Bash dumps
+*.stackdump
+
+#VSCode files
+.vscode/

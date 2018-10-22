@@ -40,10 +40,10 @@ def set_parameters_and_create():
     width = 20
     height = 150
     barHeight = 10
-    barDispl = 3
     dims = (width,height,refX,refY)
 
-    scrollBarA = ui.ScrollBar(dims, backImage, barImage, barHeight, barDispl, buttonImage)
+    params = ui.ScrollBarParams(dims, backImage, barImage, barHeight, buttonImage)
+    scrollBarA = ui.ScrollBar(params)
     return scrollBarA
 
 standalone = False
@@ -58,13 +58,27 @@ if(standalone):
 
     scrollBarA = set_parameters_and_create()
 
+    maxPosition = 18
+    currentPosition = 0
+
     while(1):
-        scrollBarA.update()
         events = ui.pygame.event.get(ui.pygame.MOUSEBUTTONDOWN)
         if(events):
             mouseEv = events[-1]
             if scrollBarA.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
                 scrollBarA.update_by_event(mouseEv)
+        
+        if scrollBarA.actionDown and currentPosition < maxPosition:
+            currentPosition += 1
+            scrollBarA.setBarPosition(currentPosition/maxPosition)
+
+        if scrollBarA.actionUp and currentPosition > 0:
+            currentPosition -= 1
+            scrollBarA.setBarPosition(currentPosition/maxPosition)
+ 
+        scrollBarA.update()
+        scrollBarA.actionDown = False
+        scrollBarA.actionUp = False
         scrollBarA.draw()
         ui.pygame.display.flip()
         time.sleep(0.020)

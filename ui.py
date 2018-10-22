@@ -48,12 +48,12 @@ class UIElement:
 
 class Component(UIElement):
     """Los componentes son secciones de la pantalla de juego"""
-    def __init__(self, **kwargs):
+    def __init__(self, dims):
 
         # Un componente inactivo no ejecuta su update()
         self._active = True   
                              
-        super().__init__(**kwargs)
+        super().__init__(dims)
     
 
 class Button(UIElement):
@@ -75,24 +75,24 @@ class Button(UIElement):
                  (dims[2] + dims[0] - f2, dims[3] + dims[1] - f2),
                  (dims[2] + f2, dims[3] + dims[1] - f2)])
 
-    def __init__(self, dims, image, frame, buttonType = ButtonType.PULSE):
-        super().__init__(dims)
+    def __init__(self, buttonParams):
+        super().__init__(buttonParams.dims)
 
         # Imagen de fondo del boton.
-        self._image = image
+        self._image = buttonParams.image
         
         # Lista con las 4 esquinas, compensada por _frameWidth.
-        self._frame = frame
+        self._frame = buttonParams.frame
 
         # Variable que guarda instante en que se hace click en el boton.          
         self._pressedTime = None    
 
-        self._type = buttonType
+        self._type = buttonParams.buttonType
         self._state = ButtonState.IDLE
         
         # Prendida por click asincrono, apagada por el padre 
         # sincronamente cuando este procesa el boton con su update
-        self._action = False        
+        self.action = False        
         return None
 
     def update(self):
@@ -136,14 +136,21 @@ class Button(UIElement):
             if self._type == ButtonType.PULSE:
                 self._state = ButtonState.PRESSED
                 self._pressedTime = time.time()
-                self._action = True
+                self.action = True
             else:
                 if self._state == ButtonState.PRESSED:
                     self._state = ButtonState.IDLE
-                    self._action = False
+                    self.action = False
                 if self._state == ButtonState.IDLE:
                     self._state = ButtonState.PRESSED
-                    self._action = True
+                    self.action = True
+
+class ButtonParams:
+    def __init__(self, dims, image, frame, buttonType = ButtonType.PULSE):
+        self.dims = dims
+        self.image = image
+        self.frame = frame
+        self.buttonType = buttonType
 
 class ScrollBar(UIElement):
     """Barra de desplazamiento en menus. 
@@ -153,39 +160,48 @@ class ScrollBar(UIElement):
     #     Seteada durante inicialización.
     #TODO:Hacer barra desplazable.
 
-    def __init__(self,
-                 dims,
-                 backImage,
-                 barImage,
-                 barHeight,
-                 barDisplacement,
-                 buttonImage):
-        super().__init__(dims)
+    def __init__(self, scrollBarParams):
+        super().__init__(scrollBarParams.dims)
 
-        self._backImage = pygame.transform.scale(backImage,
+        self._backImage = pygame.transform.scale(scrollBarParams.backImage,
                             (self._width, self._height - 2*self._width))
-        self._barHeight = barHeight
-        self._barImage = pygame.transform.scale(barImage,
+        self._barHeight = scrollBarParams.barHeight
+        self._barImage = pygame.transform.scale(scrollBarParams.barImage,
                             (self._width, self._barHeight))
         self._barLocalTop = self._width
-        self._barDisplacement = barDisplacement
-        self._topButton = Button(
+
+        topButtonParams = ButtonParams(
             (self._width,self._width,self._left,self._top),
-            buttonImage,
+            scrollBarParams.buttonImage,
             Button.frame_creator((self._width,
                           self._width,
                           self._left,
                           self._top)))
-        self._bottomButton = Button(
+
+        bottomButtonParams = ButtonParams(
             (self._width,
             self._width,
             self._left,
             self._top + self._height - self._width),
-            pygame.transform.flip(buttonImage,False,True),
+            pygame.transform.flip(scrollBarParams.buttonImage,False,True),
             Button.frame_creator((self._width,
                           self._width,
                           self._left,
                           self._top + self._height - self._width)))
+
+        self._topButton = Button(topButtonParams)
+        self._bottomButton = Button(bottomButtonParams)
+            
+        self.actionUp = False
+        self.actionDown = False
+
+    def setBarPosition(self,percent):
+        """Llamado asincronamente por el contenedor para setear 
+        la posición de la barra.
+        """
+        self._barLocalTop = int(percent * 
+                            (self._height - 2*self._width - self._barHeight) 
+                            + self._width)
 
     def update_by_event(self,mouseEvent):
         """Método llamado por el contenedor solo cuando 
@@ -205,24 +221,26 @@ class ScrollBar(UIElement):
                                          mouseEvent.pos[1]):
                 self._topButton.update_by_event(mouseEvent)
 
+            # Si hay action, desplazar hacia arriba o hacia abajo
+            if self._topButton.action:
+                self.actionUp = True
+            if self._bottomButton.action:
+                self.actionDown = True     
+
     def update(self):
         """Método llamado sincronicamente (cada frame de juego) 
         por el contenedor al cual pertenece este ScrollBar
         para actualizar el estado visual e interno del ScrollBar"""
         self._topButton.update()
         self._bottomButton.update()
+        self._topButton.action = False
+        self._bottomButton.action = False
 
-        if self._topButton._action:
-            self._barLocalTop -= self._barDisplacement
-            if self._barLocalTop < self._width:
-                self._barLocalTop = self._width
-            self._topButton._action = False
+        if self._barLocalTop < self._width:
+            self._barLocalTop = self._width
 
-        if self._bottomButton._action:
-            self._barLocalTop += self._barDisplacement
-            if self._barLocalTop > self._height - self._width - self._barHeight:
-                self._barLocalTop = self._height - self._width - self._barHeight
-            self._bottomButton._action = False
+        if self._barLocalTop > self._height - self._width - self._barHeight:
+            self._barLocalTop = self._height - self._width - self._barHeight
 
     def draw(self):
         self._topButton.draw()
@@ -231,6 +249,19 @@ class ScrollBar(UIElement):
                           (self._left,self._top + self._width))
         self._screen.blit(self._barImage,
                           (self._left,self._top + self._barLocalTop))
+
+class ScrollBarParams:
+    def __init__(self,
+                 dims,
+                 backImage,
+                 barImage,
+                 barHeight,
+                 buttonImage):
+        self.dims = dims
+        self.backImage = backImage
+        self.barImage = barImage
+        self.barHeight = barHeight
+        self.buttonImage = buttonImage
 
 class Label(UIElement):
     """Objeto de texto simple, con una sola linea"""
@@ -252,26 +283,21 @@ class TextField(UIElement):
     """Muestra parte de un archivo de texto, con ajuste de linea. """
 
     _xMargin = None
+    _yMargin = None
 
-    def __init__(self,
-                 dims,
-                 someFile,
-                 linesToRender,
-                 font,
-                 background,
-                 textColor):
-        super().__init__(dims)
+    def __init__(self, textFieldParams):
+        super().__init__(textFieldParams.dims)
         
         #Parse arguments
-        self._originalFile = someFile
-        self._linesToRender = linesToRender
-        self._font = font
+        self._originalFile = textFieldParams.someFile
+        self._font = textFieldParams.font
         self._background = pygame.transform.scale(
-            background,
+            textFieldParams.background,
             (self._width,self._height))
-        self._textColor = textColor
+        self._textColor = textFieldParams.textColor
         
         self._maxCharactersPerLine = self._calculate_max_characters()
+        self._linesToRender = self._calculate_lines_to_render()
         self._lastKnownFileLength = 0
 
         self._lines = []
@@ -280,13 +306,29 @@ class TextField(UIElement):
         self._linePosition = 0
         self._movedLines = 0
         self._currentSurfaces = []
-        for line in self._lines[0:(self._linesToRender-1)]:
+        for line in self._lines[0:self._linesToRender]:
             self._currentSurfaces.append(self._font.render(
                 line.strip(), True, self._textColor))
+
+    def at_start(self):
+        if self._linePosition <= 0:
+            return True
+        else:
+            return False
+
+    def at_end(self):
+        if self._linePosition + self._linesToRender >= len(self._lines):
+            return True
+        else:
+            return False
 
     def _calculate_max_characters(self):
         metric = self._font.metrics('W')
         return (self._width - 2 *self._xMargin) // metric[0][4]
+
+    def _calculate_lines_to_render(self):
+        yAdvance = self._font.get_height()
+        return (self._height - 2 *self._yMargin) // yAdvance
 
     def _translate_file_lines(self):
         '''Lee el archivo original o su diferencia, procesa las 
@@ -304,45 +346,161 @@ class TextField(UIElement):
             nOfDivisions = len(rawLine)//self._maxCharactersPerLine
             if nOfDivisions > 0:
                 for i in range(nOfDivisions):
-                    newLines.append(rawLine[(self._maxCharactersPerLine * i) : (self._maxCharactersPerLine * (i+1) - 1)])
+                    newLines.append(rawLine[(self._maxCharactersPerLine * i) : 
+                        (self._maxCharactersPerLine * (i+1))])
                 newLines.append(rawLine[(self._maxCharactersPerLine * (i+1)) :])
             else:
                 newLines.append(rawLine)
 
-        #Anexar nuevas lineas a listado general y correr lineas en pantalla
+        #Anexar nuevas lineas a listado general
         self._lines.extend(newLines)
-        #self._movedLines += len(newLines)
+        return len(newLines)
 
+    def textPercent(self):
+        return self._linePosition / (len(self._lines) - self._linesToRender)
 
-    def update(self):
-        if self._movedLines != 0:
-            for i in range(abs(self._movedLines)):
-                if self._movedLines < 0:
-                    self._currentSurfaces.pop(0)
-                    self._currentSurfaces.insert(0,
+    def moveDown(self, move = 1):
+        if not self.at_end():
+            for i in range(move):
+                self._currentSurfaces.pop(0)
+                self._currentSurfaces.append(
+                    self._font.render(self._lines[self._linePosition + self._linesToRender + i], 
+                                    True, 
+                                    self._textColor))
+            self._linePosition += move
+        else:
+            return -1
+
+    def moveUp(self, move = 1):
+        if not self.at_start():
+            for i in range(move):
+                self._currentSurfaces.pop()
+                self._currentSurfaces.insert(0,
                         self._font.render(self._lines[self._linePosition - (i+1)], 
                                         True, 
                                         self._textColor))
-                else:
-                    self._currentSurfaces.pop()
-                    self._currentSurfaces.append(
-                        self._font.render(self._lines[self._linePosition + self._linesToRender + i], 
-                                        True, 
-                                        self._textColor))
-            self._linePosition += self._movedLines
-            self._movedLines = 0
+            self._linePosition -= move
+        else:
+            return -1
 
+    def update(self):
+        """
+        TextField se actualiza a si mismo 
+        si es que hay cambios en la cantidad de lineas.
+        """
+        oFilePosition = self._originalFile.tell()
+        oFileLength = self._originalFile.seek(0,os.SEEK_END)
+        self._originalFile.seek(oFilePosition)
+
+        if oFileLength > self._lastKnownFileLength:
+            self.moveDown(self._translate_file_lines())
 
     def draw(self):
         self._screen.blit(self._background, (self._left, self._top))
         lineHeight = self._font.get_height()
         for idx,someLine in enumerate(self._currentSurfaces):
             self._screen.blit(someLine, (self._left + self._xMargin,
-                             self._top + idx * lineHeight))
+                             self._top + idx * lineHeight + self._yMargin))
 
     def update_by_event(self,mouseEv):
         pass
 
+class TextFieldParams:
+    def __init__(self,
+                 dims,
+                 someFile,
+                 linesToRender,
+                 font,
+                 background,
+                 textColor):
+        self.dims = dims
+        self.someFile = someFile
+        self.linesToRender = linesToRender
+        self.font = font
+        self.background = background
+        self.textColor = textColor
+
+
+class Log(Component):
+    def __init__(self, logParams):
+        """
+        Cada instancia de Log requiere objeto logParams con:
+          dims, logFile, barSize,
+          TextFieldParams con: dims, linesToRender,font,backImage,textColor
+          ScrollBarParams con: dims, backImage, barImage, barHeight, buttonImage
+        """
+        super().__init__(logParams.dims)
+        self._logFile = logParams.logFile
+        self._barSize = logParams.barSize #En pixeles de ancho
+        
+        # Modificar ciertos parametros para el TextField, 
+        # el resto debe venir de afuera.
+        self._textFieldParams = logParams.textFieldParams
+        self._textFieldParams.dims = (self._width - self._barSize,
+                                     self._height,
+                                     self._textFieldParams.dims[2] + self._left,
+                                     self._textFieldParams.dims[3] + self._top)
+        self._textFieldParams.someFile = self._logFile
+
+        # Modificar ciertos parametros para el ScrollBar
+        self._barParams = logParams.barParams
+        self._barParams.dims = (self._barSize,
+                               self._height,
+                               self._left + self._width - self._barSize,
+                               self._top)
+
+        # Crear objetos de Log
+        self._textField = TextField(self._textFieldParams)
+        self._scrollBar = ScrollBar(self._barParams)
+
+    def update(self):
+        """Método llamado sincronicamente (cada frame de juego) 
+        por el contenedor al cual pertenece este Log
+        para actualizar el estado visual e interno del Log"""
+        
+        self._textField.update()
+        self._scrollBar.setBarPosition(self._textField.textPercent())
+        self._scrollBar.update()
+        self._scrollBar.actionUp = False
+        self._scrollBar.actionDown = False  
+
+    def update_by_event(self,mouseEv):
+        """Método llamado por el contenedor solo cuando 
+        hay un evento MOUSEBUTTONDOWN dentro de los bordes de 
+        este Log"""
+        if (mouseEv.type == pygame.MOUSEBUTTONDOWN 
+            and self.has_inside(mouseEv.pos[0], mouseEv.pos[1])):
+            #Comprobación redundante pues este metodo debiera ser 
+            #llamado solo cuando le llega un MOUSEBUTTONDOWN al 
+            #Component padre.
+
+            if self._textField.has_inside(mouseEv.pos[0],
+                                            mouseEv.pos[1]):
+                self._textField.update_by_event(mouseEv)
+
+            if self._scrollBar.has_inside(mouseEv.pos[0],
+                                         mouseEv.pos[1]):
+                self._scrollBar.update_by_event(mouseEv)
+
+            if self._scrollBar.actionUp:
+                self._textField.moveUp()
+                self._scrollBar.actionUp = False
+
+            if self._scrollBar.actionDown:
+                self._textField.moveDown()
+                self._scrollBar.actionDown = False
+
+    def draw(self):
+        self._textField.draw()
+        self._scrollBar.draw()
+
+class LogParams:
+    def __init__(self,dims, logFile, barSize, textFieldParams, barParams):
+        self.dims = dims
+        self.logFile = logFile
+        self.barSize = barSize
+        self.textFieldParams = textFieldParams
+        self.barParams = barParams
 
 class UI:
     """Clase principal de User Interface, 
