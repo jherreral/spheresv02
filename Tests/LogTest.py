@@ -104,6 +104,8 @@ if(standalone):
             mouseEv = events[-1]
             if log.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
                 log.update_by_event(mouseEv)
+        
+        screen.fill((0,0,0))
         log.draw()
         ui.pygame.display.flip()
         time.sleep(0.020)

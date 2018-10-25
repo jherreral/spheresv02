@@ -266,18 +266,50 @@ class ScrollBarParams:
 class Label(UIElement):
     """Objeto de texto simple, con una sola linea"""
 
-    def __init__(self,dims,text,font,background=None):
-        super().__init__(dims)
-        self._text = text
-        self._font = font
-        self._background = background
-        self._surface = font.render(self._text, True, (255,255,255), self._background)
+    def __init__(self,labelParams):
+        super().__init__(labelParams.dims)
+        self._text = labelParams.text
+        self._font = labelParams.font
+        self._color = labelParams.color
+        self._background = labelParams.background
+        self._surface = self._font.render(self._text, True, self._color, self._background)
 
     def draw(self):
         self._screen.blit(self._surface,(self._left,self._top))
 
     def set_text(self,text):
         self._text = text
+        self._surface = self._font.render(self._text, True, self._color, self._background)
+
+    def set_color(self,color):
+        self._color = color
+        self._surface = self._font.render(self._text, True, self._color, self._background)
+
+    def get_text(self):
+        return self._text
+
+
+    def update(self):
+        pass
+
+    def update_by_event(self,mouseEv):
+        pass
+
+class LabelParams:
+
+    def __init__(self,
+                 dims,
+                 text,
+                 font,
+                 color = (255,255,255),
+                 background = None):
+        self.dims = dims
+        self.text = text
+        self.font = font
+        self.color = color
+        self.background = background
+
+
 
 class TextField(UIElement):
     """Muestra parte de un archivo de texto, con ajuste de linea. """
@@ -419,7 +451,6 @@ class TextFieldParams:
         self.font = font
         self.background = background
         self.textColor = textColor
-
 
 class Log(Component):
     def __init__(self, logParams):

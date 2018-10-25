@@ -79,6 +79,8 @@ if(standalone):
         scrollBarA.update()
         scrollBarA.actionDown = False
         scrollBarA.actionUp = False
+        
+        screen.fill((0,0,0))
         scrollBarA.draw()
         ui.pygame.display.flip()
         time.sleep(0.020)

@@ -83,6 +83,8 @@ if(standalone):
             mouseEv = events[-1]
             if textFieldA.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
                 textFieldA.update_by_event(mouseEv)
+        
+        screen.fill((0,0,0))
         textFieldA.draw()
         ui.pygame.display.flip()
         time.sleep(0.020)
