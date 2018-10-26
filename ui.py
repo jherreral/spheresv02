@@ -288,7 +288,6 @@ class Label(UIElement):
     def get_text(self):
         return self._text
 
-
     def update(self):
         pass
 
@@ -309,7 +308,73 @@ class LabelParams:
         self.color = color
         self.background = background
 
+class Track(UIElement):
+    '''
+    Muestra la produccion, petroleo, esferas y capitales de cada
+    jugador con su respectivo color.
+    Contiene un Label por cada bloque de texto ((nPlayers+1)*4 bloques)
 
+    '''
+
+    _xMargin = None
+    _yMargin = None
+
+    def __init__(self,trackParams):
+        super().__init__(trackParams.dims)
+        self._trackData = trackParams.trackData
+        self._colorCode = trackParams.colorCode
+        self._background = trackParams.background
+        self._font = trackParams.font
+
+        #==============EN PROCESO========================
+        self._staticLabels = ['Prod','Oils','Sphe','Caps']
+        self._dynamicLabels = []
+        for line in self._trackData:
+            quantityLabelsList = []
+            for idx,quantity in enumerate(line):
+                quantityLabelsList.append(Label(self._labelParams))
+                quantityLabelsList[-1].set_text(quantity.rjust(2)[:2])
+                quantityLabelsList[-1].set_color(self._colorCode[idx])
+            self._dynamicLabels.append(quantityLabelsList)
+
+    def _create_static_labels(self):
+        statics = []
+        lineSize = self._font.get_linesize()
+        for text in ['Prod','Oils','Sphe','Caps']:
+            statics.append(Label(params))
+
+        #===================EN PROCESO=============
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self._screen.blit(self._background,(self._left, self._top))
+        for label in self._staticLabels:
+            label.draw()
+        for label in self._dynamicLabels:
+            label.draw()
+        
+
+            
+
+class TrackParams:
+    def __init__(self, dims, trackData, colorCode, background, font):
+        '''
+        dims: tuple of 4 - (width, height, left, top)
+        trackData: list of 4 - [production,oils,spheres,capitals]
+            each element is a list of nPlayers
+        colorCode: tuple of nPlayers - (color1,color2,color3,...)
+            each element is a color tuple
+        background: image to use as background
+        font: font for all Labels inside Track
+        '''
+        
+        self.dims = dims
+        self.trackData = trackData
+        self.colorCode = colorCode
+        self.background = background
+        self.font = font
 
 class TextField(UIElement):
     """Muestra parte de un archivo de texto, con ajuste de linea. """
