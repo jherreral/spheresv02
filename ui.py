@@ -288,7 +288,6 @@ class Label(UIElement):
     def get_text(self):
         return self._text
 
-
     def update(self):
         pass
 
