@@ -318,32 +318,45 @@ class Track(UIElement):
 
     _xMargin = None
     _yMargin = None
+    _xOffset = None
+    _yOffset = None
 
     def __init__(self,trackParams):
         super().__init__(trackParams.dims)
         self._trackData = trackParams.trackData
         self._colorCode = trackParams.colorCode
-        self._background = trackParams.background
+        self._background = self._background = pygame.transform.scale(
+                            trackParams.background,
+                            (self._width,self._height))
         self._font = trackParams.font
 
-        #==============EN PROCESO========================
-        self._staticLabels = ['Prod','Oils','Sphe','Caps']
-        self._dynamicLabels = []
-        for line in self._trackData:
-            quantityLabelsList = []
-            for idx,quantity in enumerate(line):
-                quantityLabelsList.append(Label(self._labelParams))
-                quantityLabelsList[-1].set_text(quantity.rjust(2)[:2])
-                quantityLabelsList[-1].set_color(self._colorCode[idx])
-            self._dynamicLabels.append(quantityLabelsList)
+        self._staticLabels = self._create_static_labels()
+        self._dynamicLabels = self._create_dynamic_labels()
 
     def _create_static_labels(self):
         statics = []
         lineSize = self._font.get_linesize()
-        for text in ['Prod','Oils','Sphe','Caps']:
+        for idx,text in enumerate(['Prod','Oils','Sphe','Caps']):
+            dims = (None,None,
+                    self._left + self._xMargin,
+                    self._top + self._yMargin + idx * lineSize)
+            params = LabelParams(dims,text,self._font)
             statics.append(Label(params))
-
-        #===================EN PROCESO=============
+        return statics
+        
+    def _create_dynamic_labels(self):
+        dynamics = []
+        lineSize = self._font.get_linesize()
+        for idxV,quantityLine in enumerate(self._trackData):
+            quantityLabelsList = []
+            for idxH,quantity in enumerate(quantityLine):
+                dims = (None,None,
+                    self._left + self._xMargin + self._xOffset * (idxH+1),
+                    self._top + self._yMargin + idxV * lineSize)
+                params = LabelParams(dims,str(quantity),self._font,self._colorCode[idxH])
+                quantityLabelsList.append(Label(params))
+            dynamics.append(quantityLabelsList)
+        return dynamics
 
     def update(self):
         pass
@@ -352,11 +365,10 @@ class Track(UIElement):
         self._screen.blit(self._background,(self._left, self._top))
         for label in self._staticLabels:
             label.draw()
-        for label in self._dynamicLabels:
-            label.draw()
+        for line in self._dynamicLabels:
+            for label in line:
+                label.draw()
         
-
-            
 
 class TrackParams:
     def __init__(self, dims, trackData, colorCode, background, font):
