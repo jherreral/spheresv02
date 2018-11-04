@@ -278,7 +278,7 @@ class Label(UIElement):
         self._screen.blit(self._surface,(self._left,self._top))
 
     def set_text(self,text):
-        self._text = text
+        self._text = str(text)
         self._surface = self._font.render(self._text, True, self._color, self._background)
 
     def set_color(self,color):
@@ -357,6 +357,12 @@ class Track(UIElement):
                 quantityLabelsList.append(Label(params))
             dynamics.append(quantityLabelsList)
         return dynamics
+
+    def set_new_track_data(self,trackData):
+        self._trackData = trackData
+        for idxV,line in enumerate(self._dynamicLabels):
+            for idxH,label in enumerate(line):
+                label.set_text(self._trackData[idxV][idxH])
 
     def update(self):
         pass

@@ -18,6 +18,8 @@ def wpath(path):
             result += "\\" + part
     return result
 
+
+
 def set_parameters_and_create():
     #Setear variables de clase Track
     ui.Track._xMargin = 0
@@ -65,14 +67,11 @@ if(standalone):
 
     count = 0
     while(not endApp):
-        # if timeStart + 0.5 < time.time():
-        #     label1.set_text(label1._text + 'X')
-        #     label1.set_color(((count%8)*31 ,(count%8)*31,(count%8)*31))
-        #     count += 1
-        #     timeStart = time.time()
-
-        # if count == 2:
-        #     print('asd')
+        if timeStart + 0.1 < time.time():
+            new_track = [[count,count,count,count,count,count],[2,4,6,8,1,3],[9,7,5,3,2,1],[6,5,2,1,2,2]]
+            track1.set_new_track_data(new_track)
+            count += 1
+            timeStart = time.time()
 
         keyevents = ui.pygame.event.get(ui.pygame.KEYDOWN)
         if(keyevents):
