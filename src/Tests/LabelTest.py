@@ -1,13 +1,14 @@
 import time
 import pathlib
-
+import pygame
 import sys
 import os.path
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-import ui
-sys.path.remove(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+temporalPath = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, "UI"))
+sys.path.append(temporalPath)
+from Label import Label,LabelParams
+from UIElement import UIElement
+sys.path.remove(temporalPath)
 
 
 def set_parameters_and_create():
@@ -16,22 +17,22 @@ def set_parameters_and_create():
     refX = refY = 100
 
     dims = (0,0,refX,refY)
-    ui.pygame.font.init()
-    font = ui.pygame.font.SysFont('Courier New',24)
+    pygame.font.init()
+    font = pygame.font.SysFont('Courier New',24)
 
-    params1 = ui.LabelParams(dims, 'Hello', font)
-    label1 = ui.Label(params1)
+    params1 = LabelParams(dims, 'Hello', font)
+    label1 = Label(params1)
     return label1
 
 standalone = True
 if(standalone):
     # Crear screen para los objetos UI
     # pylint: disable=E1101
-    ui.pygame.init()
-    ui.pygame.event.set_blocked([ui.pygame.MOUSEMOTION, ui.pygame.ACTIVEEVENT])
+    pygame.init()
+    pygame.event.set_blocked([pygame.MOUSEMOTION, pygame.ACTIVEEVENT])
     size = 800, 600
-    screen = ui.pygame.display.set_mode(size)
-    ui.UIElement._screen = screen
+    screen = pygame.display.set_mode(size)
+    UIElement.screen = screen
 
     label1 = set_parameters_and_create()
 
@@ -49,13 +50,13 @@ if(standalone):
         if count == 2:
             print('asd')
 
-        keyevents = ui.pygame.event.get(ui.pygame.KEYDOWN)
+        keyevents = pygame.event.get(pygame.KEYDOWN)
         if(keyevents):
-            if keyevents[-1].key == ui.pygame.K_ESCAPE:
+            if keyevents[-1].key == pygame.K_ESCAPE:
                 endApp = True
 
         label1.update()
-        events = ui.pygame.event.get(ui.pygame.MOUSEBUTTONDOWN)
+        events = pygame.event.get(pygame.MOUSEBUTTONDOWN)
         if(events):
             mouseEv = events[-1]
             if label1.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
@@ -63,5 +64,5 @@ if(standalone):
 
         screen.fill((0,0,0))
         label1.draw()
-        ui.pygame.display.flip()
+        pygame.display.flip()
         time.sleep(0.020)

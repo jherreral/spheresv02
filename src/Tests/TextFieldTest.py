@@ -3,11 +3,12 @@ import pathlib
 import pygame
 import sys
 import os.path
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-import ui
-sys.path.remove(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+temporalPath = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, "UI"))
+sys.path.append(temporalPath)
+from TextField import TextField, TextFieldParams
+from UIElement import UIElement
+sys.path.remove(temporalPath)
 
 
 def wpath(path):
@@ -22,8 +23,8 @@ def wpath(path):
 def set_parameters_and_create():
 
     # Setear variables de clase TextField
-    ui.TextField._xMargin = 5
-    ui.TextField._yMargin = 5
+    TextField.xMargin = 5
+    TextField.yMargin = 5
 
     # Crear variables para init de TextField
     refX = 400
@@ -35,29 +36,28 @@ def set_parameters_and_create():
     pygame.font.init()
     someFont = pygame.font.SysFont('Courier New',12)
     
-    filePath = pathlib.Path.cwd() / "Tests" / "textForTestingTextField.txt"
+    filePath = pathlib.Path.cwd() / "src" / "Tests" / "textForTestingTextField.txt"
     backPath = pathlib.Path.cwd() / "Assets" / "scrollBack.png"
 
     someFile = open(filePath,'r+')
-    linesToRender = 11
-    backImage = ui.pygame.image.load(wpath(backPath))
+    backImage = pygame.image.load(wpath(backPath))
     textColor = pygame.Color(255,255,255,255)
 
     
-    params = ui.TextFieldParams(dims, someFile, linesToRender,
+    params = TextFieldParams(dims, someFile,
                                 someFont, backImage, textColor)
-    textFieldA = ui.TextField(params)
+    textFieldA = TextField(params)
     return textFieldA
 
 standalone = True
 if(standalone):
     # Crear screen para los objetos UI
     # pylint: disable=E1101
-    ui.pygame.init()
-    ui.pygame.event.set_blocked([ui.pygame.MOUSEMOTION, ui.pygame.ACTIVEEVENT])
+    pygame.init()
+    pygame.event.set_blocked([pygame.MOUSEMOTION, pygame.ACTIVEEVENT])
     size = 800, 600
-    screen = ui.pygame.display.set_mode(size)
-    ui.UIElement._screen = screen
+    screen = pygame.display.set_mode(size)
+    UIElement.screen = screen
 
     textFieldA = set_parameters_and_create()
     someFile = textFieldA._originalFile
@@ -72,13 +72,13 @@ if(standalone):
             someFile.seek(currentPosition)
             timeStart = time.time()
 
-        keyevents = ui.pygame.event.get(ui.pygame.KEYDOWN)
+        keyevents = pygame.event.get(pygame.KEYDOWN)
         if(keyevents):
-            if keyevents[-1].key == ui.pygame.K_ESCAPE:
+            if keyevents[-1].key == pygame.K_ESCAPE:
                 endApp = True
 
         textFieldA.update()
-        events = ui.pygame.event.get(ui.pygame.MOUSEBUTTONDOWN)
+        events = pygame.event.get(pygame.MOUSEBUTTONDOWN)
         if(events):
             mouseEv = events[-1]
             if textFieldA.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
@@ -86,7 +86,7 @@ if(standalone):
         
         screen.fill((0,0,0))
         textFieldA.draw()
-        ui.pygame.display.flip()
+        pygame.display.flip()
         time.sleep(0.020)
     
     someFile.close()

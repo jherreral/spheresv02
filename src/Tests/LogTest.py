@@ -3,11 +3,15 @@ import pathlib
 import pygame
 import sys
 import os.path
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-import ui
-sys.path.remove(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+temporalPath = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, "UI"))
+sys.path.append(temporalPath)
+from Log import Log,LogParams
+from Button import Button
+from TextField import TextField,TextFieldParams
+from ScrollBar import ScrollBar,ScrollBarParams
+from UIElement import UIElement
+sys.path.remove(temporalPath)
 
 
 def wpath(path):
@@ -22,14 +26,14 @@ def wpath(path):
 def set_parameters_and_create():
 
     # Setear variables de clase TextField
-    ui.TextField._xMargin = 5
-    ui.TextField._yMargin = 5
+    TextField.xMargin = 5
+    TextField.yMargin = 5
 
     # Setear variables de clase Button, usada por ScrollBar
-    ui.Button._hoverColor = (0,0,200)
-    ui.Button._pressedColor = (200, 0, 0)
-    ui.Button._frameWidth = 5
-    ui.Button._holdTime = 0.2
+    Button.hoverColor = (0,0,200)
+    Button.pressedColor = (200, 0, 0)
+    Button.frameWidth = 5
+    Button.holdTime = 0.2
 
     # Crear variables para init de Log
     refX = 100
@@ -38,46 +42,43 @@ def set_parameters_and_create():
     height = 200
     dims = (width,height,refX,refY)
 
-    filePath = pathlib.Path.cwd() / "Tests" / "textForTestingTextField.txt"
+    filePath = pathlib.Path.cwd() / "src" / "Tests" / "textForTestingTextField.txt"
     backPath = pathlib.Path.cwd() / "Assets" / "scrollBack.png"
 
     someFile = open(filePath,'r+')
     barSize = 20
     #Variables para sub-item TextField
-    tfDims = (0,0,0,0) 
     pygame.font.init()
     someFont = pygame.font.SysFont('Courier New',12)
-    linesToRender = 9
-    backImage = ui.pygame.image.load(wpath(backPath))
+    backImage = pygame.image.load(wpath(backPath))
     textColor = pygame.Color(255,255,255,255)
     
-    textFieldParams = ui.TextFieldParams(tfDims, None, linesToRender,
+    textFieldParams = TextFieldParams(None, None,
                                 someFont, backImage, textColor)
 
     #Variables para sub-item ScrollBar
-    sbDims = (0,0,0,0)
     buttonPath = pathlib.Path.cwd() / "Assets" / "scrollButton.png"
     barPath = pathlib.Path.cwd() / "Assets" / "scrollBar.png"
-    buttonImage = ui.pygame.image.load(wpath(buttonPath))
-    barImage = ui.pygame.image.load(wpath(barPath))
+    buttonImage = pygame.image.load(wpath(buttonPath))
+    barImage = pygame.image.load(wpath(barPath))
 
     barHeight = 10
 
-    scrollBarParams = ui.ScrollBarParams(sbDims, backImage, barImage, barHeight, buttonImage)
+    scrollBarParams = ScrollBarParams(None, backImage, barImage, barHeight, buttonImage)
 
-    logParams = ui.LogParams(dims,someFile,barSize,textFieldParams,scrollBarParams)
-    log = ui.Log(logParams)
+    logParams = LogParams(dims,someFile,barSize,textFieldParams,scrollBarParams)
+    log = Log(logParams)
     return log
 
 standalone = True
 if(standalone):
     # Crear screen para los objetos UI
     # pylint: disable=E1101
-    ui.pygame.init()
-    ui.pygame.event.set_blocked([ui.pygame.MOUSEMOTION, ui.pygame.ACTIVEEVENT])
+    pygame.init()
+    pygame.event.set_blocked([pygame.MOUSEMOTION, pygame.ACTIVEEVENT])
     size = 800, 600
-    screen = ui.pygame.display.set_mode(size)
-    ui.UIElement._screen = screen
+    screen = pygame.display.set_mode(size)
+    UIElement.screen = screen
 
     log = set_parameters_and_create()
     someFile = log._logFile
@@ -93,13 +94,13 @@ if(standalone):
             someFile.seek(currentPosition)
             timeStart = time.time()
 
-        keyevents = ui.pygame.event.get(ui.pygame.KEYDOWN)
+        keyevents = pygame.event.get(pygame.KEYDOWN)
         if(keyevents):
-            if keyevents[-1].key == ui.pygame.K_ESCAPE:
+            if keyevents[-1].key == pygame.K_ESCAPE:
                 endApp = True
 
         log.update()
-        events = ui.pygame.event.get(ui.pygame.MOUSEBUTTONDOWN)
+        events = pygame.event.get(pygame.MOUSEBUTTONDOWN)
         if(events):
             mouseEv = events[-1]
             if log.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
@@ -107,7 +108,7 @@ if(standalone):
         
         screen.fill((0,0,0))
         log.draw()
-        ui.pygame.display.flip()
+        pygame.display.flip()
         time.sleep(0.020)
     
     someFile.close()

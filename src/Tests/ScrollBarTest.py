@@ -1,14 +1,15 @@
 import time
 import pathlib
-
+import pygame
 import sys
 import os.path
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-import ui
-sys.path.remove(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-
+temporalPath = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, "UI"))
+sys.path.append(temporalPath)
+from Button import Button
+from ScrollBar import ScrollBar,ScrollBarParams
+from UIElement import UIElement
+sys.path.remove(temporalPath)
 
 def wpath(path):
     result = ""
@@ -21,10 +22,10 @@ def wpath(path):
 
 def set_parameters_and_create():
     # Setear variables de clase Button, usada por ScrollBar
-    ui.Button._hoverColor = (0,0,200)
-    ui.Button._pressedColor = (200, 0, 0)
-    ui.Button._frameWidth = 5
-    ui.Button._holdTime = 0.2
+    Button.hoverColor = (0,0,200)
+    Button.pressedColor = (200, 0, 0)
+    Button.frameWidth = 5
+    Button.holdTime = 0.2
 
     # Crear variables para init de ScrollBar
     refX = 300
@@ -33,28 +34,28 @@ def set_parameters_and_create():
     barPath = pathlib.Path.cwd() / "Assets" / "scrollBar.png"
     backPath = pathlib.Path.cwd() / "Assets" / "scrollBack.png"
 
-    buttonImage = ui.pygame.image.load(wpath(buttonPath))
-    barImage = ui.pygame.image.load(wpath(barPath))
-    backImage = ui.pygame.image.load(wpath(backPath))
+    buttonImage = pygame.image.load(wpath(buttonPath))
+    barImage = pygame.image.load(wpath(barPath))
+    backImage = pygame.image.load(wpath(backPath))
 
     width = 20
     height = 150
     barHeight = 10
     dims = (width,height,refX,refY)
 
-    params = ui.ScrollBarParams(dims, backImage, barImage, barHeight, buttonImage)
-    scrollBarA = ui.ScrollBar(params)
+    params = ScrollBarParams(dims, backImage, barImage, barHeight, buttonImage)
+    scrollBarA = ScrollBar(params)
     return scrollBarA
 
-standalone = False
+standalone = True
 if(standalone):
     # Crear screen para los objetos UI
     # pylint: disable=E1101
-    ui.pygame.init()
-    ui.pygame.event.set_blocked([ui.pygame.MOUSEMOTION, ui.pygame.ACTIVEEVENT])
+    pygame.init()
+    pygame.event.set_blocked([pygame.MOUSEMOTION, pygame.ACTIVEEVENT])
     size = 800, 600
-    screen = ui.pygame.display.set_mode(size)
-    ui.UIElement._screen = screen
+    screen = pygame.display.set_mode(size)
+    UIElement.screen = screen
 
     scrollBarA = set_parameters_and_create()
 
@@ -62,7 +63,7 @@ if(standalone):
     currentPosition = 0
 
     while(1):
-        events = ui.pygame.event.get(ui.pygame.MOUSEBUTTONDOWN)
+        events = pygame.event.get(pygame.MOUSEBUTTONDOWN)
         if(events):
             mouseEv = events[-1]
             if scrollBarA.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
@@ -82,5 +83,5 @@ if(standalone):
         
         screen.fill((0,0,0))
         scrollBarA.draw()
-        ui.pygame.display.flip()
+        pygame.display.flip()
         time.sleep(0.020)
