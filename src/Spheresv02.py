@@ -1,5 +1,7 @@
 import queue as q
-from src.UI.ui import UI
+import sys,os
+
+from UI.ui import UI
 
 #Create Queues
 GameQueue = q.Queue()

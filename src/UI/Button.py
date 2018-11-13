@@ -41,6 +41,9 @@ class Button(UIElement):
         # Lista con las 4 esquinas, compensada por _frameWidth.
         self._frame = buttonParams.frame
 
+        # Nombre para manejo en listas
+        self.id = buttonParams.id
+
         # Variable que guarda instante en que se hace click en el boton.          
         self._pressedTime = None    
 
@@ -103,8 +106,9 @@ class Button(UIElement):
                     self.action = True
 
 class ButtonParams:
-    def __init__(self, dims, image, frame, buttonType = ButtonType.PULSE):
+    def __init__(self, dims, image, frame, buttonType = ButtonType.PULSE, id = None):
         self.dims = dims
         self.image = image
         self.frame = frame
         self.buttonType = buttonType
+        self.id = id
