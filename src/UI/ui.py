@@ -14,9 +14,18 @@ import ScrollBar
 import Button
 import Track
 
+class CardBank:
+    def __init__(self):
+        self._cardMap = {}
+        cardFolderPath = pathlib.Path.cwd() / "Assets" / "Cards"
+        pass
+
+    def getCard(self,cardId):
+        pass
+
 class Resources:
     def __init__(self):
-        self.cardImages = None
+        self.cardBank = None
         self.backgrounds = None
         self.strings = None
         self.colors = None
