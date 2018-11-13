@@ -36,7 +36,10 @@ class Button(UIElement):
         super().__init__(buttonParams.dims)
 
         # Imagen de fondo del boton.
-        self._image = buttonParams.image
+        self._image = pygame.transform.scale(
+            buttonParams.image,
+            (self._width,self._height))
+        
         
         # Lista con las 4 esquinas, compensada por _frameWidth.
         self._frame = buttonParams.frame

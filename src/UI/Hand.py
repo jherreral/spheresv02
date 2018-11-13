@@ -1,3 +1,4 @@
+from pygame.transform import scale
 from Button import Button,ButtonParams,ButtonType
 from Label import Label,LabelParams
 from Component import Component
@@ -11,11 +12,11 @@ class Hand(Component):
     playerDims = (0,0,20,50)
     factionDims = (0,0,50,50)
     logoDims = (60,60,80,10)
-    cardDims = (15,20,10,10)
-    offset = 5
+    cardDims = (30,40,10,10)
+    offset = 10
 
     def __init__(self,handParams):
-        super.__init__(handParams.dims)
+        super().__init__(handParams.dims)
         self._font = handParams.font
                 
         playerParams = LabelParams(
@@ -31,14 +32,17 @@ class Hand(Component):
         self._playerLabel = Label(playerParams)
         self._factionLabel = Label(factionParams)
         self._logoImage = handParams.logoImage
+        self._background = scale(
+            handParams.background,
+            (self._width,self._height))
         self._cardList = []
         self._cardBank = handParams.cardBank
 
     def addCard(self,cardId):
         dims = (self.cardDims[0],
                 self.cardDims[1],
-                self._left + self.cardDims[2] + self.offset * (len(self._cardList)),
-                self.cardDims[3])
+                self._left + (self.cardDims[0] + self.offset) * (len(self._cardList)),
+                self._top + self.cardDims[3])
         cardParams = ButtonParams(
             dims,
             self._cardBank.getCard(cardId),
@@ -74,10 +78,12 @@ class Hand(Component):
         pass
 
     def draw(self):
+        self.screen.blit(self._background, (self._left, self._top))
         self._playerLabel.draw()
         self._factionLabel.draw()
         self.screen.blit(self._logoImage,
-            (self.logoDims[2],self.logoDims[3]))
+            (self._left + self.logoDims[2],
+             self._top + self.logoDims[3]))
         for card in self._cardList:
             card.draw()
 

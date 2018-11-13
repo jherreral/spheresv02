@@ -14,9 +14,34 @@ import ScrollBar
 import Button
 import Track
 
+class CardBank:
+
+    # TODO:corregir a algo mas robusto
+    def wpath(self,path):
+        result = ""
+        for idx,part in enumerate(path.parts):
+            if idx == 0:
+                result = part
+            else:
+                result += "\\" + part
+        return result
+
+    def __init__(self):
+        self._cardMap = {}
+        cardFolderPath = pathlib.Path.cwd() / "Assets" / "Cards"
+        pathList = os.listdir(cardFolderPath)
+        for somePath in pathList:
+            key = somePath[0:2]
+            auxPath = self.wpath(cardFolderPath / somePath)
+            image = pygame.image.load(auxPath)
+            self._cardMap[key]=image
+
+    def getCard(self,cardId):
+        return self._cardMap[cardId]
+
 class Resources:
     def __init__(self):
-        self.cardImages = None
+        self.cardBank = None
         self.backgrounds = None
         self.strings = None
         self.colors = None
