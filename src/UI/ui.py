@@ -15,6 +15,7 @@ import Button
 import Track
 
 class CardBank:
+<<<<<<< HEAD
 
     # TODO:corregir a algo mas robusto
     def wpath(self,path):
@@ -38,6 +39,15 @@ class CardBank:
 
     def getCard(self,cardId):
         return self._cardMap[cardId]
+=======
+    def __init__(self):
+        self._cardMap = {}
+        cardFolderPath = pathlib.Path.cwd() / "Assets" / "Cards"
+        pass
+
+    def getCard(self,cardId):
+        pass
+>>>>>>> bea1a1242dad86dddacc86a322fd69b53c782965
 
 class Resources:
     def __init__(self):

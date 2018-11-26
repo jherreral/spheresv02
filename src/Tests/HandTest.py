@@ -11,7 +11,10 @@ from Button import Button,ButtonParams
 from Label import Label,LabelParams
 from Hand import Hand,HandParams
 from UIElement import UIElement
+<<<<<<< HEAD
 from ui import CardBank
+=======
+>>>>>>> bea1a1242dad86dddacc86a322fd69b53c782965
 sys.path.remove(temporalPath)
 
 def wpath(path):
@@ -33,6 +36,7 @@ def set_parameters_and_create():
     Button.holdTime = 0.2
 
     #Setear variables de clase Hand
+<<<<<<< HEAD
     Hand.playerDims = (0,0,20,120)
     Hand.factionDims = (0,0,400,120)
     Hand.logoDims = (60,60,400,10)
@@ -44,6 +48,19 @@ def set_parameters_and_create():
     refY = 450
     width = 500
     height = 150
+=======
+    Hand.playerDims = (0,0,20,50)
+    Hand.factionDims = (0,0,50,50)
+    Hand.logoDims = (60,60,80,10)
+    Hand.cardDims = (15,20,10,10)
+    Hand.offset = 5
+
+    # Crear variables para init de Hand
+    refX = 100
+    refY = 300
+    width = 300
+    height = 200
+>>>>>>> bea1a1242dad86dddacc86a322fd69b53c782965
     dims = (width,height,refX,refY)
     
     logoPath = pathlib.Path.cwd() / "Assets" / "logo.png"
@@ -55,7 +72,11 @@ def set_parameters_and_create():
     pygame.font.init()
     font = pygame.font.SysFont('Courier New',24)
 
+<<<<<<< HEAD
     cardBank = CardBank()
+=======
+    cardBank = None
+>>>>>>> bea1a1242dad86dddacc86a322fd69b53c782965
     params1 = HandParams(dims, 'Jimmy', 'Badgers', logoImage,backImage,font,cardBank)
     hand1 = Hand(params1)
     return hand1
@@ -70,15 +91,26 @@ if(standalone):
     screen = pygame.display.set_mode(size)
     UIElement.screen = screen
 
+<<<<<<< HEAD
     hand1 = set_parameters_and_create()
+=======
+    track1 = set_parameters_and_create()
+>>>>>>> bea1a1242dad86dddacc86a322fd69b53c782965
 
     timeStart = time.time()
     endApp = False
 
     count = 0
     while(not endApp):
+<<<<<<< HEAD
         if timeStart + 3 < time.time():
             hand1.addCard('00')
+=======
+        if timeStart + 0.1 < time.time():
+            new_track = [[count,count,count,count,count,count],[2,4,6,8,1,3],[9,7,5,3,2,1],[6,5,2,1,2,2]]
+            track1.set_new_track_data(new_track)
+            count += 1
+>>>>>>> bea1a1242dad86dddacc86a322fd69b53c782965
             timeStart = time.time()
 
         keyevents = pygame.event.get(pygame.KEYDOWN)
@@ -86,6 +118,7 @@ if(standalone):
             if keyevents[-1].key == pygame.K_ESCAPE:
                 endApp = True
 
+<<<<<<< HEAD
         hand1.update()
         events = pygame.event.get(pygame.MOUSEBUTTONDOWN)
         if(events):
@@ -95,5 +128,16 @@ if(standalone):
 
         screen.fill((0,0,0))
         hand1.draw()
+=======
+        track1.update()
+        events = pygame.event.get(pygame.MOUSEBUTTONDOWN)
+        if(events):
+            mouseEv = events[-1]
+            if track1.has_inside(mouseEv.pos[0],mouseEv.pos[1]):
+                track1.update_by_event(mouseEv)
+
+        screen.fill((0,0,0))
+        track1.draw()
+>>>>>>> bea1a1242dad86dddacc86a322fd69b53c782965
         pygame.display.flip()
         time.sleep(0.020)
